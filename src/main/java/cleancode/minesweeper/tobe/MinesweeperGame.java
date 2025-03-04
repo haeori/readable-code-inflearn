@@ -15,9 +15,9 @@ public class MinesweeperGame {
         System.out.println("지뢰찾기 게임 시작!");
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         Scanner scanner = new Scanner(System.in);
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 10; j++) {
-                board[i][j] = "□";
+        for (int row = 0; row < 8; row++) { // i, j를 명확한 명칭인 row, col로 리네이밍
+            for (int col = 0; col < 10; col++) {
+                board[row][col] = "□";
             }
         }
         for (int i = 0; i < 10; i++) {
@@ -25,46 +25,46 @@ public class MinesweeperGame {
             int row = new Random().nextInt(8);
             landMines[row][col] = true;
         }
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 10; j++) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 10; col++) {
                 int count = 0;
-                if (!landMines[i][j]) {
-                    if (i - 1 >= 0 && j - 1 >= 0 && landMines[i - 1][j - 1]) {
+                if (!landMines[row][col]) { // 지뢰가 아닌 칸에서만 주변 지뢰 카운트
+                    if (row - 1 >= 0 && col - 1 >= 0 && landMines[row - 1][col - 1]) {
                         count++;
                     }
-                    if (i - 1 >= 0 && landMines[i - 1][j]) {
+                    if (row - 1 >= 0 && landMines[row - 1][col]) {
                         count++;
                     }
-                    if (i - 1 >= 0 && j + 1 < 10 && landMines[i - 1][j + 1]) {
+                    if (row - 1 >= 0 && col + 1 < 10 && landMines[row - 1][col + 1]) {
                         count++;
                     }
-                    if (j - 1 >= 0 && landMines[i][j - 1]) {
+                    if (col - 1 >= 0 && landMines[row][col - 1]) {
                         count++;
                     }
-                    if (j + 1 < 10 && landMines[i][j + 1]) {
+                    if (col + 1 < 10 && landMines[row][col + 1]) {
                         count++;
                     }
-                    if (i + 1 < 8 && j - 1 >= 0 && landMines[i + 1][j - 1]) {
+                    if (row + 1 < 8 && col - 1 >= 0 && landMines[row + 1][col - 1]) {
                         count++;
                     }
-                    if (i + 1 < 8 && landMines[i + 1][j]) {
+                    if (row + 1 < 8 && landMines[row + 1][col]) {
                         count++;
                     }
-                    if (i + 1 < 8 && j + 1 < 10 && landMines[i + 1][j + 1]) {
+                    if (row + 1 < 8 && col + 1 < 10 && landMines[row + 1][col + 1]) {
                         count++;
                     }
-                    landMineCounts[i][j] = count;
+                    landMineCounts[row][col] = count;
                     continue;
                 }
-                landMineCounts[i][j] = 0;
+                landMineCounts[row][col] = 0;
             }
         }
         while (true) {
             System.out.println("   a b c d e f g h i j");
-            for (int i = 0; i < 8; i++) {
-                System.out.printf("%d  ", i + 1);
-                for (int j = 0; j < 10; j++) {
-                    System.out.print(board[i][j] + " ");
+            for (int row = 0; row < 8; row++) {
+                System.out.printf("%d  ", row + 1);
+                for (int col = 0; col < 10; col++) {
+                    System.out.print(board[row][col] + " ");
                 }
                 System.out.println();
             }
@@ -78,68 +78,68 @@ public class MinesweeperGame {
             }
             System.out.println();
             System.out.println("선택할 좌표를 입력하세요. (예: a1)");
-            String input = scanner.nextLine();
+            String cellInput = scanner.nextLine(); // 셀 위치 입력이라는 변수 의미를 명확히 나타내도록 리네이밍
             System.out.println("선택한 셀에 대한 행위를 선택하세요. (1: 오픈, 2: 깃발 꽂기)");
-            String input2 = scanner.nextLine();
-            char c = input.charAt(0);
-            char r = input.charAt(1);
-            int col;
-            switch (c) {
+            String userActionInput = scanner.nextLine(); // 유저 액션 입력
+            char cellInputCol = cellInput.charAt(0);
+            char cellInputRow = cellInput.charAt(1);
+            int selectedColIndex;
+            switch (cellInputCol) {
                 case 'a':
-                    col = 0;
+                    selectedColIndex = 0;
                     break;
                 case 'b':
-                    col = 1;
+                    selectedColIndex = 1;
                     break;
                 case 'c':
-                    col = 2;
+                    selectedColIndex = 2;
                     break;
                 case 'd':
-                    col = 3;
+                    selectedColIndex = 3;
                     break;
                 case 'e':
-                    col = 4;
+                    selectedColIndex = 4;
                     break;
                 case 'f':
-                    col = 5;
+                    selectedColIndex = 5;
                     break;
                 case 'g':
-                    col = 6;
+                    selectedColIndex = 6;
                     break;
                 case 'h':
-                    col = 7;
+                    selectedColIndex = 7;
                     break;
                 case 'i':
-                    col = 8;
+                    selectedColIndex = 8;
                     break;
                 case 'j':
-                    col = 9;
+                    selectedColIndex = 9;
                     break;
                 default:
-                    col = -1;
+                    selectedColIndex = -1;
                     break;
             }
-            int row = Character.getNumericValue(r) - 1;
-            if (input2.equals("2")) {
-                board[row][col] = "⚑";
-                boolean open = true;
-                for (int i = 0; i < 8; i++) {
-                    for (int j = 0; j < 10; j++) {
-                        if (board[i][j].equals("□")) {
-                            open = false;
+            int selectedRowIndex = Character.getNumericValue(cellInputRow) - 1;
+            if (userActionInput.equals("2")) { // 사용자가 선택한 행위가 깃발 꽂기(2)인 경우
+                board[selectedRowIndex][selectedColIndex] = "⚑";
+                boolean isAllOpened = true; // open 변수를 명료한 뜻을 가진 isAllOpened로 변경
+                for (int row = 0; row < 8; row++) {
+                    for (int col = 0; col < 10; col++) {
+                        if (board[row][col].equals("□")) {
+                            isAllOpened = false;
                         }
                     }
                 }
-                if (open) {
+                if (isAllOpened) { // 모든 게임판이 열렸으면 승리
                     gameStatus = 1;
                 }
-            } else if (input2.equals("1")) {
-                if (landMines[row][col]) {
-                    board[row][col] = "☼";
+            } else if (userActionInput.equals("1")) { // 사용자가 선택한 행위가 셀을 열기(1)인 경우
+                if (landMines[selectedRowIndex][selectedColIndex]) { // 지뢰를 밟았다면 게임 종료
+                    board[selectedRowIndex][selectedColIndex] = "☼";
                     gameStatus = -1;
                     continue;
-                } else {
-                    open(row, col);
+                } else { // 정상 셀이면 오픈
+                    open(selectedRowIndex, selectedColIndex);
                 }
                 boolean open = true;
                 for (int i = 0; i < 8; i++) {
@@ -158,8 +158,8 @@ public class MinesweeperGame {
         }
     }
 
-    private static void open(int row, int col) {
-        if (row < 0 || row >= 8 || col < 0 || col >= 10) {
+    private static void open(int row, int col) { // 재귀함수
+        if (row < 0 || row >= 8 || col < 0 || col >= 10) { // board라는 인덱스를 벗어나 판을 벗어난 경우
             return;
         }
         if (!board[row][col].equals("□")) {
@@ -174,7 +174,7 @@ public class MinesweeperGame {
         } else {
             board[row][col] = "■";
         }
-        open(row - 1, col - 1);
+        open(row - 1, col - 1); // 해당 셀의 주변 8개 셀을 모두 탐색
         open(row - 1, col);
         open(row - 1, col + 1);
         open(row, col - 1);
