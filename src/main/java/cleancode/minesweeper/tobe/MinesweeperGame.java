@@ -27,21 +27,28 @@ public class MinesweeperGame {
         // 이니셜라이즈 종료되므로 의미 단락 분리
 
         while (true) {
-            showBoard();
-            // showBoard 후 게임 진행시키므로 의미 단락 분리
+            try {
+                showBoard();
+                // showBoard 후 게임 진행시키므로 의미 단락 분리
 
-            if (doesUserWinTheGame()) { // 추상화 레벨이 맞지 않는 구체적 로직을 메서드로 추출
-                System.out.println("지뢰를 모두 찾았습니다. GAME CLEAR!");
-                break;
-            }
-            if (doesUserLoseTheGame()) {
-                System.out.println("지뢰를 밟았습니다. GAME OVER!");
-                break;
-            }
+                if (doesUserWinTheGame()) { // 추상화 레벨이 맞지 않는 구체적 로직을 메서드로 추출
+                    System.out.println("지뢰를 모두 찾았습니다. GAME CLEAR!");
+                    break;
+                }
+                if (doesUserLoseTheGame()) {
+                    System.out.println("지뢰를 밟았습니다. GAME OVER!");
+                    break;
+                }
 
-            String cellInput = getCellInputFromUser(); // 사용할 변수가 가깝게 선언되도록 변경하였다가, 객체가 매번 재생성되어 상수로 변경
-            String userActionInput = getUserActionInputFromUser();
-            actOnCell(cellInput, userActionInput); // 특정 좌표에서 수행할 행동을 분리한 메서드
+                String cellInput = getCellInputFromUser(); // 사용할 변수가 가깝게 선언되도록 변경하였다가, 객체가 매번 재생성되어 상수로 변경
+                String userActionInput = getUserActionInputFromUser();
+                actOnCell(cellInput, userActionInput); // 특정 좌표에서 수행할 행동을 분리한 메서드
+            } catch (AppException e) { // 의도한 예외
+                System.out.println(e.getMessage());
+            } catch (Exception e) { // 의도하지 않은 예외
+                System.out.println("프로그램에 문제가 생겼습니다.");
+                e.printStackTrace(); // printStackTrace는 실무에서는 안티패턴이며 로그로 남겨야 함
+            }
         }
     }
 
@@ -66,7 +73,7 @@ public class MinesweeperGame {
             checkIfGameIsOver();
             return;
         }
-        System.out.println("잘못된 번호를 선택하셨습니다.");
+        throw new AppException("잘못된 번호를 선택하셨습니다."); // 사용자 입력에 대한 예외처리
     }
 
     private static void changeGameStatusToLose() {
@@ -129,12 +136,16 @@ public class MinesweeperGame {
     private static boolean isAllCellOpened() { // 중첩 반복문 메서드로 분리 및 stream 활용하여 3중 depth 해소
         return Arrays.stream(BOARD) // Stream<String[]>
                 .flatMap(Arrays::stream) // Stream<String>
-                .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
+                .noneMatch(CLOSED_CELL_SIGN::equals); // 사용자 입력인 cell은 null 가능성 있으므로 상수인 CLOSED_CELL_SIGN을 기준으로 비교하도록 변경
     }
 
     private static int convertRowFrom(char cellInputRow) {
-        int selectedRowIndex = Character.getNumericValue(cellInputRow) - 1;
-        return selectedRowIndex;
+        int rowIndex = Character.getNumericValue(cellInputRow) - 1;
+        if (rowIndex < 0 || rowIndex >= BOARD_ROW_SIZE) {
+            throw new AppException("잘못된 입력입니다.");
+        }
+
+        return rowIndex;
     }
 
     private static int convertColFrom(char cellInputCol) {
@@ -160,7 +171,7 @@ public class MinesweeperGame {
             case 'j':
                 return 9;
             default:
-                return -1;
+                throw new AppException("잘못된 입력입니다."); // 존재하지 않는 위치에 대한 접근으로 인해 발생하는 exception에 대한 예외처리
         }
     }
 
