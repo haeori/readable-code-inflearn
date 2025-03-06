@@ -1,5 +1,6 @@
 package cleancode.minesweeper.tobe;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -15,13 +16,13 @@ public class MinesweeperGame {
     public static final String LAND_MINE_SIGN = "☼";
     public static final String CLOSED_CELL_SIGN = "□";
     public static final String OPENED_CELL_SIGN = "■";
+    static Scanner SCANNER = new Scanner(System.in); // Scanner 객체가 계속 생성되지 않도록 상수로 선언
 
     // 상수와 필드 구분 개행
     private static int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
 
     public static void main(String[] args) {
         showGameStartComments();
-        Scanner scanner = new Scanner(System.in);
         initializeGame();
         while (true) {
             showBoard();
@@ -33,8 +34,8 @@ public class MinesweeperGame {
                 System.out.println("지뢰를 밟았습니다. GAME OVER!");
                 break;
             }
-            String cellInput = getCellInputFromUser(scanner);
-            String userActionInput = getUserActionInputFromUser(scanner);
+            String cellInput = getCellInputFromUser(); // 사용할 변수가 가깝게 선언되도록 변경하였다가, 객체가 매번 재생성되어 상수로 변경
+            String userActionInput = getUserActionInputFromUser();
             actOnCell(cellInput, userActionInput); // 특정 좌표에서 수행할 행동을 분리한 메서드
         }
     }
@@ -88,14 +89,14 @@ public class MinesweeperGame {
         return selectedColIndex;
     }
 
-    private static String getUserActionInputFromUser(Scanner scanner) {
+    private static String getUserActionInputFromUser() {
         System.out.println("선택한 셀에 대한 행위를 선택하세요. (1: 오픈, 2: 깃발 꽂기)");
-        return scanner.nextLine(); // 유저 액션 입력
+        return SCANNER.nextLine(); // 유저 액션 입력
     }
 
-    private static String getCellInputFromUser(Scanner scanner) {
+    private static String getCellInputFromUser() {
         System.out.println("선택할 좌표를 입력하세요. (예: a1)");
-        return scanner.nextLine();
+        return SCANNER.nextLine();
     }
 
     private static boolean doesUserLoseTheGame() {
@@ -117,17 +118,21 @@ public class MinesweeperGame {
         gameStatus = 1;
     }
 
-    private static boolean isAllCellOpened() {
-        boolean isAllOpened = true; // 두 가지 이상의 일을 하는 메서드를 단일 주제로 분리
-        for (int row = 0; row < BOARD_ROW_SIZE; row++) { // isAllOpened를 결정하는 로직을 메서드로 추출
-            for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                if (BOARD[row][col].equals(CLOSED_CELL_SIGN)) {
-                    isAllOpened = false;
-                }
-            }
-        }
-        return isAllOpened;
+    private static boolean isAllCellOpened() { // 중첩 반복문 메서드로 분리 및 stream 활용하여 3중 depth 해소
+        return Arrays.stream(BOARD) // Stream<String[]>
+                .flatMap(Arrays::stream) // Stream<String>
+                .noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN));
     }
+
+// 이해를 위해 임시로 주석처리하여 남겨둠
+//    private static boolean isAllCellOpenedWithAnnotation() {
+//        Stream<String[]> stringArrayStream = Arrays.stream(BOARD); // 이중 배열인 BOARD String 배열에 stream을 걸어 생성(이해를 위해 변수로 추출)
+//        Stream<String> stringStream = stringArrayStream.flatMap(stringArray -> { // string array를 다시 가져와서 stream을 건다
+//            Stream<String> stringStream2 = Arrays.stream(stringArray); // flatMap이 아니라 Map이면 Stream<Stream<String>>이 되므로 flatMap으로 평탄화함
+//            return stringStream2;
+//        }); // 즉 stringStream은 BOARD의 각 원소들(string)을 다 평탄화해서 stream으로 만든 것
+//        return stringStream.noneMatch(cell -> cell.equals(CLOSED_CELL_SIGN)); // cell이 BOARD의 각 원소들이며, 모든 셀이 CLOSED_CELL_SIGN이 아니면 true 반환
+//    }
 
     private static int convertRowFrom(char cellInputRow) {
         int selectedRowIndex = Character.getNumericValue(cellInputRow) - 1;
