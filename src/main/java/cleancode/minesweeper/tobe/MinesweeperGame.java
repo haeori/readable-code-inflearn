@@ -187,43 +187,48 @@ public class MinesweeperGame {
         for (int i = 0; i < LAND_MINE_COUNT; i++) {
             int col = new Random().nextInt(BOARD_COL_SIZE);
             int row = new Random().nextInt(BOARD_ROW_SIZE);
-            LAND_MINES[row][col] = true; // 값을 할당하는 부분이므로 isLandMineCell(row, col)로 변경하지 않음
+            LAND_MINES[row][col] = true;
         }
 
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                int count = 0;
-                if (!isLandMineCell(row, col)) {
-                    if (row - 1 >= 0 && col - 1 >= 0 && isLandMineCell(row - 1, col - 1)) {
-                        count++;
-                    }
-                    if (row - 1 >= 0 && isLandMineCell(row - 1, col)) {
-                        count++;
-                    }
-                    if (row - 1 >= 0 && col + 1 < BOARD_COL_SIZE && isLandMineCell(row - 1, col + 1)) {
-                        count++;
-                    }
-                    if (col - 1 >= 0 && isLandMineCell(row, col - 1)) {
-                        count++;
-                    }
-                    if (col + 1 < BOARD_COL_SIZE && isLandMineCell(row, col + 1)) {
-                        count++;
-                    }
-                    if (row + 1 < BOARD_ROW_SIZE && col - 1 >= 0 && isLandMineCell(row + 1, col - 1)) {
-                        count++;
-                    }
-                    if (row + 1 < BOARD_ROW_SIZE && isLandMineCell(row + 1, col)) {
-                        count++;
-                    }
-                    if (row + 1 < BOARD_ROW_SIZE && col + 1 < BOARD_COL_SIZE && isLandMineCell(row + 1, col + 1)) {
-                        count++;
-                    }
-                    NEARBY_LAND_MINE_COUNTS[row][col] = count;
+                if (isLandMineCell(row, col)) { // 부정연산자를 사용하지 않아도 되는 상황이므로 제거 후 로직 변경
+                    NEARBY_LAND_MINE_COUNTS[row][col] = 0;
                     continue;
                 }
-                NEARBY_LAND_MINE_COUNTS[row][col] = 0;
+                int count = countNearbyLandMines(row, col);
+                NEARBY_LAND_MINE_COUNTS[row][col] = count;
             }
         }
+    }
+
+    private static int countNearbyLandMines(int row, int col) {
+        int count = 0; // 사용할 위치와 가깝게 선언
+        if (row - 1 >= 0 && col - 1 >= 0 && isLandMineCell(row - 1, col - 1)) {
+            count++;
+        }
+        if (row - 1 >= 0 && isLandMineCell(row - 1, col)) {
+            count++;
+        }
+        if (row - 1 >= 0 && col + 1 < BOARD_COL_SIZE && isLandMineCell(row - 1, col + 1)) {
+            count++;
+        }
+        if (col - 1 >= 0 && isLandMineCell(row, col - 1)) {
+            count++;
+        }
+        if (col + 1 < BOARD_COL_SIZE && isLandMineCell(row, col + 1)) {
+            count++;
+        }
+        if (row + 1 < BOARD_ROW_SIZE && col - 1 >= 0 && isLandMineCell(row + 1, col - 1)) {
+            count++;
+        }
+        if (row + 1 < BOARD_ROW_SIZE && isLandMineCell(row + 1, col)) {
+            count++;
+        }
+        if (row + 1 < BOARD_ROW_SIZE && col + 1 < BOARD_COL_SIZE && isLandMineCell(row + 1, col + 1)) {
+            count++;
+        }
+        return count;
     }
 
     private static void showGameStartComments() {
