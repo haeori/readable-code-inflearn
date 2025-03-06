@@ -9,14 +9,11 @@ public class MinesweeperGame {
     public static final int BOARD_ROW_SIZE = 8;
     public static final int BOARD_COL_SIZE = 10;
     public static final Scanner SCANNER = new Scanner(System.in);
-    private static final String[][] BOARD = new String[BOARD_ROW_SIZE][BOARD_COL_SIZE];
+    private static final Cell[][] BOARD = new Cell[BOARD_ROW_SIZE][BOARD_COL_SIZE]; // 실무에서 점진적 리팩토링이 중요
     private static final Integer[][] NEARBY_LAND_MINE_COUNTS = new Integer[BOARD_ROW_SIZE][BOARD_COL_SIZE];
     private static final boolean[][] LAND_MINES = new boolean[BOARD_ROW_SIZE][BOARD_COL_SIZE];
     public static final int LAND_MINE_COUNT = 10;
-    public static final String FLAG_SIGN = "⚑";
-    public static final String LAND_MINE_SIGN = "☼";
-    public static final String CLOSED_CELL_SIGN = "□";
-    public static final String OPENED_CELL_SIGN = "■";
+
 
     // 상수와 필드 구분 개행
     private static int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
@@ -57,7 +54,7 @@ public class MinesweeperGame {
         int selectedRowIndex = getSelectedRowIndex(cellInput);
 
         if (doesUserChooseToPlantFlag(userActionInput)) { // if-else 무분별한 사용 대신 if로 조건 기술 및 early return 적용
-            BOARD[selectedRowIndex][selectedColIndex] = FLAG_SIGN;
+            BOARD[selectedRowIndex][selectedColIndex] = Cell.ofFlag(); // 각 상수를 클래스 내부로 변경했으므로 Cell.of 대신 다른 메서드 사용
             checkIfGameIsOver();
             return;
         }
@@ -65,7 +62,7 @@ public class MinesweeperGame {
 
         if (doesUserChooseToOpenCell(userActionInput)) {
             if (isLandMineCell(selectedRowIndex, selectedColIndex)) {
-                BOARD[selectedRowIndex][selectedColIndex] = LAND_MINE_SIGN;
+                BOARD[selectedRowIndex][selectedColIndex] = Cell.ofLandMine();
                 changeGameStatusToLose();
                 return;
             }
@@ -136,7 +133,7 @@ public class MinesweeperGame {
     private static boolean isAllCellOpened() { // 중첩 반복문 메서드로 분리 및 stream 활용하여 3중 depth 해소
         return Arrays.stream(BOARD) // Stream<String[]>
                 .flatMap(Arrays::stream) // Stream<String>
-                .noneMatch(CLOSED_CELL_SIGN::equals); // 사용자 입력인 cell은 null 가능성 있으므로 상수인 CLOSED_CELL_SIGN을 기준으로 비교하도록 변경
+                .noneMatch(Cell::isClosed); // Cell 객체의 equalsSign가 비교하도록 수정
     }
 
     private static int convertRowFrom(char cellInputRow) {
@@ -180,7 +177,7 @@ public class MinesweeperGame {
         for (int row = 0; row < BOARD_ROW_SIZE; row++) {
             System.out.printf("%d  ", row + 1);
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                System.out.print(BOARD[row][col] + " ");
+                System.out.print(BOARD[row][col].getSign() + " ");
             }
             System.out.println();
         }
@@ -190,7 +187,7 @@ public class MinesweeperGame {
     private static void initializeGame() {
         for (int row = 0; row < BOARD_ROW_SIZE; row++) { // i, j를 명확한 명칭인 row, col로 리네이밍
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                BOARD[row][col] = CLOSED_CELL_SIGN;
+                BOARD[row][col] = Cell.ofClosed();
             }
         }
         // 반복문 종료시마다 작업이 하나 끝난 것이므로 환기를 위해 단락 분리
@@ -252,17 +249,17 @@ public class MinesweeperGame {
         if (row < 0 || row >= BOARD_ROW_SIZE || col < 0 || col >= BOARD_COL_SIZE) { // board라는 인덱스를 벗어나 판을 벗어난 경우
             return;
         }
-        if (!BOARD[row][col].equals(CLOSED_CELL_SIGN)) {
+        if (BOARD[row][col].doesNotClosed()) {
             return;
         }
         if (isLandMineCell(row, col)) {
             return;
         }
         if (NEARBY_LAND_MINE_COUNTS[row][col] != 0) {
-            BOARD[row][col] = String.valueOf(NEARBY_LAND_MINE_COUNTS[row][col]);
+            BOARD[row][col] = Cell.ofNearbyLandMineCount(NEARBY_LAND_MINE_COUNTS[row][col]);
             return;
         } else {
-            BOARD[row][col] = OPENED_CELL_SIGN;
+            BOARD[row][col] = Cell.ofOpened();
         }
         open(row - 1, col - 1); // 해당 셀의 주변 8개 셀을 모두 탐색
         open(row - 1, col);
