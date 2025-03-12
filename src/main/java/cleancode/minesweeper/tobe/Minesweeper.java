@@ -1,46 +1,46 @@
 package cleancode.minesweeper.tobe;
 
+import cleancode.minesweeper.tobe.io.ConsoleInputHandler;
+import cleancode.minesweeper.tobe.io.ConsoleOutputHandler;
+
 import java.util.Arrays;
 import java.util.Random;
-import java.util.Scanner;
 
 public class Minesweeper {
     public static final int BOARD_ROW_SIZE = 8;
     public static final int BOARD_COL_SIZE = 10;
-    public static final Scanner SCANNER = new Scanner(System.in);
     private static final Cell[][] BOARD = new Cell[BOARD_ROW_SIZE][BOARD_COL_SIZE]; // 실무에서 점진적 리팩토링이 중요
     public static final int LAND_MINE_COUNT = 10;
 
+    private final ConsoleInputHandler consoleInputHandler = new ConsoleInputHandler();
+    private final ConsoleOutputHandler consoleOutputHandler = new ConsoleOutputHandler();
     // 더이상 main 함수에 존재하지 않으므로 상수 제외 static 키워드 일괄 제거
     private int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
 
     public void run() {
-        showGameStartComments();
+        consoleOutputHandler.showGameStartComments();
         initializeGame();
-        // 이니셜라이즈 종료되므로 의미 단락 분리
 
         while (true) {
             try {
-                showBoard();
-                // showBoard 후 게임 진행시키므로 의미 단락 분리
+                consoleOutputHandler.showBoard(BOARD);
 
                 if (doesUserWinTheGame()) { // 추상화 레벨이 맞지 않는 구체적 로직을 메서드로 추출
-                    System.out.println("지뢰를 모두 찾았습니다. GAME CLEAR!");
+                    consoleOutputHandler.printGameWinningComment();
                     break;
                 }
                 if (doesUserLoseTheGame()) {
-                    System.out.println("지뢰를 밟았습니다. GAME OVER!");
+                    consoleOutputHandler.printGameLosingComment();
                     break;
                 }
 
                 String cellInput = getCellInputFromUser(); // 사용할 변수가 가깝게 선언되도록 변경하였다가, 객체가 매번 재생성되어 상수로 변경
                 String userActionInput = getUserActionInputFromUser();
                 actOnCell(cellInput, userActionInput); // 특정 좌표에서 수행할 행동을 분리한 메서드
-            } catch (AppException e) { // 의도한 예외
-                System.out.println(e.getMessage());
+            } catch (AppException e) { // e.getMessage()를 받아도 되지만, e 자체를 받아도 무방
+                consoleOutputHandler.printExceptionMessage(e);
             } catch (Exception e) { // 의도하지 않은 예외
-                System.out.println("프로그램에 문제가 생겼습니다.");
-                e.printStackTrace(); // printStackTrace는 실무에서는 안티패턴이며 로그로 남겨야 함
+                consoleOutputHandler.printSimpleMessage("프로그램에 문제가 생겼습니다.");
             }
         }
     } // 모든 게임 로직을 본 클래스로 이동
@@ -99,13 +99,13 @@ public class Minesweeper {
     }
 
     private String getUserActionInputFromUser() {
-        System.out.println("선택한 셀에 대한 행위를 선택하세요. (1: 오픈, 2: 깃발 꽂기)");
-        return SCANNER.nextLine(); // 유저 액션 입력
+        consoleOutputHandler.printCommentForUserAction();
+        return consoleInputHandler.getUserInput(); // 유저 액션 입력
     }
 
     private String getCellInputFromUser() {
-        System.out.println("선택할 좌표를 입력하세요. (예: a1)");
-        return SCANNER.nextLine();
+        consoleOutputHandler.printCommentForSelectingCell();
+        return consoleInputHandler.getUserInput();
     }
 
     private boolean doesUserLoseTheGame() {
@@ -169,18 +169,6 @@ public class Minesweeper {
         }
     }
 
-    private void showBoard() {
-        System.out.println("   a b c d e f g h i j");
-        for (int row = 0; row < BOARD_ROW_SIZE; row++) {
-            System.out.printf("%d  ", row + 1);
-            for (int col = 0; col < BOARD_COL_SIZE; col++) {
-                System.out.print(BOARD[row][col].getSign() + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
     private void initializeGame() {
         for (int row = 0; row < BOARD_ROW_SIZE; row++) { // i, j를 명확한 명칭인 row, col로 리네이밍
             for (int col = 0; col < BOARD_COL_SIZE; col++) {
@@ -236,12 +224,6 @@ public class Minesweeper {
         return count;
     }
 
-    private void showGameStartComments() {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-        System.out.println("지뢰찾기 게임 시작!");
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    }
-
     private void open(int row, int col) { // 재귀함수
         if (row < 0 || row >= BOARD_ROW_SIZE || col < 0 || col >= BOARD_COL_SIZE) { // board라는 인덱스를 벗어나 판을 벗어난 경우
             return;
@@ -256,7 +238,6 @@ public class Minesweeper {
         BOARD[row][col].open(); // if-else 어느 쪽이든 open이 필요해져 else문 삭제
 
         if (BOARD[row][col].hasLandMineCount()) { // 주변에 지뢰가 있는 경우
-//            BOARD[row][col] = Cell.ofNearbyLandMineCount(NEARBY_LAND_MINE_COUNTS[row][col]); // Cell 객체 내에 근처 지뢰 개수를 저장하므로 불필요
             return;
         }
         open(row - 1, col - 1); // 해당 셀의 주변 8개 셀을 모두 탐색
