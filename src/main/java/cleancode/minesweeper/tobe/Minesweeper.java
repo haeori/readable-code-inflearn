@@ -3,16 +3,16 @@ package cleancode.minesweeper.tobe;
 import cleancode.minesweeper.tobe.io.ConsoleInputHandler;
 import cleancode.minesweeper.tobe.io.ConsoleOutputHandler;
 
-import java.util.Arrays;
-import java.util.Random;
-
 public class Minesweeper {
-    public static final int BOARD_ROW_SIZE = 8;
-    public static final int BOARD_COL_SIZE = 10;
+    public static final int BOARD_ROW_SIZE = 14;
+    public static final int BOARD_COL_SIZE = 18;
+
+    // 공백 적절히 추가(이전 강의 해당)
+
     private final GameBoard gameBoard = new GameBoard(BOARD_ROW_SIZE, BOARD_COL_SIZE); // BOARD 사용 위치 없어진 것 확인 후 제거. 실무에서는 점진적 리팩토링이 중요
+    private final BoardIndexConverter boardIndexConverter = new BoardIndexConverter();
     private final ConsoleInputHandler consoleInputHandler = new ConsoleInputHandler();
     private final ConsoleOutputHandler consoleOutputHandler = new ConsoleOutputHandler();
-    // 더이상 main 함수에 존재하지 않으므로 상수 제외 static 키워드 일괄 제거
     private int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
 
     public void run() {
@@ -44,8 +44,8 @@ public class Minesweeper {
     } // 모든 게임 로직을 본 클래스로 이동
 
     private void actOnCell(String cellInput, String userActionInput) {
-        int selectedColIndex = getSelectedColIndex(cellInput);
-        int selectedRowIndex = getSelectedRowIndex(cellInput);
+        int selectedColIndex = boardIndexConverter.getSelectedColIndex(cellInput, gameBoard.getColSize());
+        int selectedRowIndex = boardIndexConverter.getSelectedRowIndex(cellInput, gameBoard.getRowSize());
 
         if (doesUserChooseToPlantFlag(userActionInput)) {
             gameBoard.flag(selectedRowIndex, selectedColIndex);
@@ -81,18 +81,6 @@ public class Minesweeper {
         return userActionInput.equals("2");
     }
 
-    private int getSelectedRowIndex(String cellInput) {
-        char cellInputRow = cellInput.charAt(1);
-        int selectedRowIndex = convertRowFrom(cellInputRow);
-        return selectedRowIndex;
-    }
-
-    private int getSelectedColIndex(String cellInput) {
-        char cellInputCol = cellInput.charAt(0);
-        int selectedColIndex = convertColFrom(cellInputCol); // 전치사로 자연스럽게 의미 추측되도록 메서드 레벨 추상화
-        return selectedColIndex;
-    }
-
     private String getUserActionInputFromUser() {
         consoleOutputHandler.printCommentForUserAction();
         return consoleInputHandler.getUserInput(); // 유저 액션 입력
@@ -119,42 +107,6 @@ public class Minesweeper {
 
     private void changeGameStatusToWin() {
         gameStatus = 1;
-    }
-
-    private int convertRowFrom(char cellInputRow) {
-        int rowIndex = Character.getNumericValue(cellInputRow) - 1;
-        if (rowIndex < 0 || rowIndex >= BOARD_ROW_SIZE) {
-            throw new AppException("잘못된 입력입니다.");
-        }
-
-        return rowIndex;
-    }
-
-    private int convertColFrom(char cellInputCol) {
-        switch (cellInputCol) { // 불필요한 변수 삭제하고 바로 return하도록 수정
-            case 'a':
-                return 0;
-            case 'b':
-                return 1;
-            case 'c':
-                return 2;
-            case 'd':
-                return 3;
-            case 'e':
-                return 4;
-            case 'f':
-                return 5;
-            case 'g':
-                return 6;
-            case 'h':
-                return 7;
-            case 'i':
-                return 8;
-            case 'j':
-                return 9;
-            default:
-                throw new AppException("잘못된 입력입니다."); // 존재하지 않는 위치에 대한 접근으로 인해 발생하는 exception에 대한 예외처리
-        }
     }
 
 }
