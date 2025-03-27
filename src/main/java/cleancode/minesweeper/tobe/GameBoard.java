@@ -1,15 +1,22 @@
 package cleancode.minesweeper.tobe;
 
+import cleancode.minesweeper.tobe.gamelevel.GameLevel;
+
 import java.util.Arrays;
 import java.util.Random;
 
 public class GameBoard { // BOARD가 Minesweeeper 내부에 존재하기에는 많은 책임을 가지고 있으므로 별도 분리
 
     private final Cell[][] board;
-    public static final int LAND_MINE_COUNT = 10;
+    private final int landMineCount;
 
-    public GameBoard(int rowSize, int colSize) { // 외부에서는 형태를 알 수 없이 rowSize, colSize만 전달하여 생성하는 방식으로 변경(캡슐화)
+    public GameBoard(GameLevel gameLevel)
+    { // 외부에서는 형태를 알 수 없이 rowSize, colSize만 전달하여 생성하는 방식으로 변경(캡슐화)
+        int rowSize = gameLevel.getRowSize();
+        int colSize = gameLevel.getColSize();
         board = new Cell[rowSize][colSize];
+
+        landMineCount = gameLevel.getLandMineCount();
     }
 
     public boolean isAllCellChecked() { // 중첩 반복문 메서드로 분리 및 stream 활용하여 3중 depth 해소
@@ -29,7 +36,7 @@ public class GameBoard { // BOARD가 Minesweeeper 내부에 존재하기에는 �
         }
         // 반복문 종료시마다 작업이 하나 끝난 것이므로 환기를 위해 단락 분리
 
-        for (int i = 0; i < LAND_MINE_COUNT; i++) {
+        for (int i = 0; i < landMineCount; i++) {
             int landMineCol = new Random().nextInt(colSize);
             int landMineRow = new Random().nextInt(rowSize);
             Cell landMineCell = findCell(landMineRow, landMineCol);

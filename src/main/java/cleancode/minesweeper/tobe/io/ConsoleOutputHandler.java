@@ -2,14 +2,16 @@ package cleancode.minesweeper.tobe.io;
 
 import cleancode.minesweeper.tobe.AppException;
 import cleancode.minesweeper.tobe.GameBoard;
+import cleancode.minesweeper.tobe.gamelevel.GameLevel;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
 public class ConsoleOutputHandler {
-    public void showGameStartComments() {
+    public void showGameStartComments(GameLevel gameLevel) {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         System.out.println("지뢰찾기 게임 시작!");
+        System.out.println("난이도: " + gameLevel.getLevelName());
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     }
 

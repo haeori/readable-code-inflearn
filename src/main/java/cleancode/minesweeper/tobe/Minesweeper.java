@@ -1,22 +1,27 @@
 package cleancode.minesweeper.tobe;
 
+import cleancode.minesweeper.tobe.gamelevel.GameLevel;
 import cleancode.minesweeper.tobe.io.ConsoleInputHandler;
 import cleancode.minesweeper.tobe.io.ConsoleOutputHandler;
 
 public class Minesweeper {
-    public static final int BOARD_ROW_SIZE = 14;
-    public static final int BOARD_COL_SIZE = 18;
 
-    // 공백 적절히 추가(이전 강의 해당)
-
-    private final GameBoard gameBoard = new GameBoard(BOARD_ROW_SIZE, BOARD_COL_SIZE); // BOARD 사용 위치 없어진 것 확인 후 제거. 실무에서는 점진적 리팩토링이 중요
+    private final GameBoard gameBoard;
+    private final GameLevel gameLevel;
     private final BoardIndexConverter boardIndexConverter = new BoardIndexConverter();
     private final ConsoleInputHandler consoleInputHandler = new ConsoleInputHandler();
     private final ConsoleOutputHandler consoleOutputHandler = new ConsoleOutputHandler();
     private int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
 
+    // 런타임 시점에 어떤 구현체가 들어올지 모르나 GameLevel이라는 스펙은 알고 있으므로 게임 수행 가능
+    // colSize, rowSize, landMineCount만 알면 게임 수행 가능한 구조
+    public Minesweeper(GameLevel gameLevel) {
+        gameBoard = new GameBoard(gameLevel);
+        this.gameLevel = gameLevel;
+    }
+
     public void run() {
-        consoleOutputHandler.showGameStartComments();
+        consoleOutputHandler.showGameStartComments(gameLevel); // 게임 시작 시 난이도 출력
         gameBoard.initializeGame();
 
         while (true) {
