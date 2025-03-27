@@ -1,11 +1,15 @@
 package cleancode.minesweeper.tobe;
 
+import cleancode.minesweeper.tobe.cell.Cell;
+import cleancode.minesweeper.tobe.cell.EmptyCell;
+import cleancode.minesweeper.tobe.cell.LandMineCell;
+import cleancode.minesweeper.tobe.cell.NumberCell;
 import cleancode.minesweeper.tobe.gamelevel.GameLevel;
 
 import java.util.Arrays;
 import java.util.Random;
 
-public class GameBoard { // BOARD가 Minesweeeper 내부에 존재하기에는 많은 책임을 가지고 있으므로 별도 분리
+public class GameBoard { // BOARD가 Minesweeper 내부에 존재하기에는 많은 책임을 가지고 있으므로 별도 분리
 
     private final Cell[][] board;
     private final int landMineCount;
@@ -31,16 +35,16 @@ public class GameBoard { // BOARD가 Minesweeeper 내부에 존재하기에는 �
 
         for (int row = 0; row < rowSize; row++) { // i, j를 명확한 명칭인 row, col로 리네이밍
             for (int col = 0; col < colSize; col++) {
-                board[row][col] = Cell.create(); // cell을 할당하는 로직이라 findCell 로 대체 불가
+                board[row][col] = new EmptyCell(); // 신규 생성되는 cell은 EmptyCell
             }
         }
-        // 반복문 종료시마다 작업이 하나 끝난 것이므로 환기를 위해 단락 분리
 
         for (int i = 0; i < landMineCount; i++) {
             int landMineCol = new Random().nextInt(colSize);
             int landMineRow = new Random().nextInt(rowSize);
-            Cell landMineCell = findCell(landMineRow, landMineCol);
-            landMineCell.turnOnLandMine(); // LAND_MINES 제거
+            LandMineCell landMineCell = new LandMineCell();
+//            landMineCell.turnOnLandMine(); // 지뢰인 경우에만 LandMineCell이므로 지뢰 여부값 불필요
+            board[landMineRow][landMineCol] = landMineCell;
         }
 
         for (int row = 0; row < rowSize; row++) {
@@ -49,8 +53,13 @@ public class GameBoard { // BOARD가 Minesweeeper 내부에 존재하기에는 �
                     continue;
                 }
                 int count = countNearbyLandMines(row, col);
-                Cell cell = findCell(row, col);
-                cell.updateNearbyLandMineCount(count);
+                if(count == 0) {
+                    continue;  // count가 0인 경우 update 방지(해당 로직이 없으면 게임판 내 count가 0인 경우의 cell이 모두 열림)
+                }
+
+                NumberCell numberCell = new NumberCell(count);
+//                numberCell.updateNearbyLandMineCount(count); // update 불필요
+                board[row][col] = numberCell;
             }
         }
     }
@@ -103,6 +112,14 @@ public class GameBoard { // BOARD가 Minesweeeper 내부에 존재하기에는 �
         Cell cell = findCell(selectedRowIndex, selectedColIndex); // board[row][col] 변경 후 findCell(row, col) 적용 -> 변수 추출
         return cell.isLandMine();
     }
+
+    // 예시
+    //    public void temp(Cell cell) { // cell이 어떻게 동작하는지 알지 못하고 불필요한 타입체크를 하여 리스코프 치환 원칙 위반. 상속 구조에서는 타입체크가 불필요
+    //        if (cell instanceof NumberCell) {
+    //            NumberCell numberCell = (NumberCell) cell;
+    //            numberCell.updateNearbyLandMineCount(0);
+    //        }
+    //    }
 
     public String getSign(int rowIndex, int colIndex) {
         Cell cell = findCell(rowIndex, colIndex);

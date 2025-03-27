@@ -29,6 +29,19 @@ public class ConsoleOutputHandler {
         System.out.println();
     }
 
+    // 상속 구조에서, 부모 클래스의 인스턴스를 자식클래스의 인스턴스로 치환할 수 있어야 함
+    // 자식 클래스는 부모 클래스의 책임을 준수하며, 부모 클래스 행동을 변경하지 않아야 함
+    // LSP 위반시 불필요한 타입 체크가 발생할 수 있다.
+    // 부모-자식. 슈퍼-서브. 상위-하위. Base-Derived 등으로 표현
+    /* LSP 예시
+        class Parent {
+         public Result doSomething() { ... }
+       }
+        class Child extends Parent {}
+        Result r = new Parent().doSomething(); // 가능
+        Result r = new Child().doSomething(); // 가능
+     */
+
     private String generateColAlphabets(GameBoard board) {
         List<String> alphabets = IntStream.range(0, board.getColSize())
                 .mapToObj(index -> (char) ('a' + index))
