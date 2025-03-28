@@ -8,6 +8,7 @@ public class GameApplication { // 확장성을 위해 클래스명도 변경
         GameLevel gameLevel = new Beginner();
 
         Minesweeper minesweeper = new Minesweeper(gameLevel);
+        minesweeper.initialize();
         minesweeper.run();
     }
 }
