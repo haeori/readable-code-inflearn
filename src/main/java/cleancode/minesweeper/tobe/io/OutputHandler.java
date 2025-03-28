@@ -26,15 +26,15 @@ public interface OutputHandler {
         Result r = new Child().doSomething(); // 가능
      */
 
-    void printGameWinningComment();
+    void showGameWinningComment();
 
-    void printGameLosingComment();
+    void showGameLosingComment();
 
-    void printCommentForSelectingCell();
+    void showCommentForSelectingCell();
 
-    void printCommentForUserAction();
+    void showCommentForUserAction();
 
-    void printExceptionMessage(AppException e);
+    void showExceptionMessage(AppException e);
 
-    void printSimpleMessage(String message);
+    void showSimpleMessage(String message);
 }

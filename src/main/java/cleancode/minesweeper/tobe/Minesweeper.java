@@ -39,11 +39,11 @@ public class Minesweeper implements GameInitializable, GameRunnable {
                 outputHandler.showBoard(gameBoard);
 
                 if (doesUserWinTheGame()) { // 추상화 레벨이 맞지 않는 구체적 로직을 메서드로 추출
-                    outputHandler.printGameWinningComment();
+                    outputHandler.showGameWinningComment();
                     break;
                 }
                 if (doesUserLoseTheGame()) {
-                    outputHandler.printGameLosingComment();
+                    outputHandler.showGameLosingComment();
                     break;
                 }
 
@@ -51,9 +51,9 @@ public class Minesweeper implements GameInitializable, GameRunnable {
                 String userActionInput = getUserActionInputFromUser();
                 actOnCell(cellInput, userActionInput); // 특정 좌표에서 수행할 행동을 분리한 메서드
             } catch (AppException e) { // e.getMessage()를 받아도 되지만, e 자체를 받아도 무방
-                outputHandler.printExceptionMessage(e);
+                outputHandler.showExceptionMessage(e);
             } catch (Exception e) { // 의도하지 않은 예외
-                outputHandler.printSimpleMessage("프로그램에 문제가 생겼습니다.");
+                outputHandler.showSimpleMessage("프로그램에 문제가 생겼습니다.");
             }
         }
     } // 모든 게임 로직을 본 클래스로 이동
@@ -97,12 +97,12 @@ public class Minesweeper implements GameInitializable, GameRunnable {
     }
 
     private String getUserActionInputFromUser() {
-        outputHandler.printCommentForUserAction();
+        outputHandler.showCommentForUserAction();
         return inputHandler.getUserInput(); // 유저 액션 입력
     }
 
     private String getCellInputFromUser() {
-        outputHandler.printCommentForSelectingCell();
+        outputHandler.showCommentForSelectingCell();
         return inputHandler.getUserInput();
     }
 
@@ -115,6 +115,10 @@ public class Minesweeper implements GameInitializable, GameRunnable {
     }
 
     private void checkIfGameIsOver() {
+        extracted();
+    }
+
+    private void extracted() {
         if (gameBoard.isAllCellChecked()) {
             changeGameStatusToWin();
         }
