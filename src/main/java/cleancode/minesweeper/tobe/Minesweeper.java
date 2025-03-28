@@ -3,23 +3,25 @@ package cleancode.minesweeper.tobe;
 import cleancode.minesweeper.tobe.game.GameInitializable;
 import cleancode.minesweeper.tobe.game.GameRunnable;
 import cleancode.minesweeper.tobe.gamelevel.GameLevel;
-import cleancode.minesweeper.tobe.io.ConsoleInputHandler;
-import cleancode.minesweeper.tobe.io.ConsoleOutputHandler;
+import cleancode.minesweeper.tobe.io.InputHandler;
+import cleancode.minesweeper.tobe.io.OutputHandler;
 
 public class Minesweeper implements GameInitializable, GameRunnable {
 
     private final GameBoard gameBoard;
     private final GameLevel gameLevel;
     private final BoardIndexConverter boardIndexConverter = new BoardIndexConverter();
-    private final ConsoleInputHandler consoleInputHandler = new ConsoleInputHandler();
-    private final ConsoleOutputHandler consoleOutputHandler = new ConsoleOutputHandler();
+    private final InputHandler inputHandler;
+    private final OutputHandler outputHandler;
     private int gameStatus = 0; // 0: 게임 중, 1: 승리, -1: 패배
 
     // 런타임 시점에 어떤 구현체가 들어올지 모르나 GameLevel이라는 스펙은 알고 있으므로 게임 수행 가능
     // colSize, rowSize, landMineCount만 알면 게임 수행 가능한 구조
-    public Minesweeper(GameLevel gameLevel) {
+    public Minesweeper(GameLevel gameLevel, InputHandler inputHandler, OutputHandler outputHandler) {
         gameBoard = new GameBoard(gameLevel);
         this.gameLevel = gameLevel;
+        this.inputHandler = inputHandler;
+        this.outputHandler = outputHandler;
     }
 
     @Override
@@ -29,19 +31,19 @@ public class Minesweeper implements GameInitializable, GameRunnable {
 
     @Override
     public void run() {
-        consoleOutputHandler.showGameStartComments(gameLevel); // 게임 시작 시 난이도 출력
+        outputHandler.showGameStartComments(gameLevel); // 게임 시작 시 난이도 출력
         gameBoard.initializeGame();
 
         while (true) {
             try {
-                consoleOutputHandler.showBoard(gameBoard);
+                outputHandler.showBoard(gameBoard);
 
                 if (doesUserWinTheGame()) { // 추상화 레벨이 맞지 않는 구체적 로직을 메서드로 추출
-                    consoleOutputHandler.printGameWinningComment();
+                    outputHandler.printGameWinningComment();
                     break;
                 }
                 if (doesUserLoseTheGame()) {
-                    consoleOutputHandler.printGameLosingComment();
+                    outputHandler.printGameLosingComment();
                     break;
                 }
 
@@ -49,9 +51,9 @@ public class Minesweeper implements GameInitializable, GameRunnable {
                 String userActionInput = getUserActionInputFromUser();
                 actOnCell(cellInput, userActionInput); // 특정 좌표에서 수행할 행동을 분리한 메서드
             } catch (AppException e) { // e.getMessage()를 받아도 되지만, e 자체를 받아도 무방
-                consoleOutputHandler.printExceptionMessage(e);
+                outputHandler.printExceptionMessage(e);
             } catch (Exception e) { // 의도하지 않은 예외
-                consoleOutputHandler.printSimpleMessage("프로그램에 문제가 생겼습니다.");
+                outputHandler.printSimpleMessage("프로그램에 문제가 생겼습니다.");
             }
         }
     } // 모든 게임 로직을 본 클래스로 이동
@@ -95,13 +97,13 @@ public class Minesweeper implements GameInitializable, GameRunnable {
     }
 
     private String getUserActionInputFromUser() {
-        consoleOutputHandler.printCommentForUserAction();
-        return consoleInputHandler.getUserInput(); // 유저 액션 입력
+        outputHandler.printCommentForUserAction();
+        return inputHandler.getUserInput(); // 유저 액션 입력
     }
 
     private String getCellInputFromUser() {
-        consoleOutputHandler.printCommentForSelectingCell();
-        return consoleInputHandler.getUserInput();
+        outputHandler.printCommentForSelectingCell();
+        return inputHandler.getUserInput();
     }
 
     private boolean doesUserLoseTheGame() {
